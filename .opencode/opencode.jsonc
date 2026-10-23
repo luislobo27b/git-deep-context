@@ -1,0 +1,66 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Endurecimento da skill git-deep-context (R5 do HARDENING.md): a política de
+  // permissões é imposta pelo harness, não apenas pelo texto da skill.
+  // Importante: a ordem das regras importa — vence a ÚLTIMA regra que casar.
+  "permissions": [
+    // 1) Padrão: qualquer comando shell exige confirmação (allowlist implícita).
+    { "action": "shell", "resource": "*", "effect": "ask" },
+
+    // 2) Negações amplas de git (git add/commit com formato inseguro e comandos
+    //    que alteram estado ou reescrevem histórico). Vêm antes das allowlist
+    //    específicas para que os formatos seguros possam reabilitá-los abaixo.
+    { "action": "shell", "resource": "git add *", "effect": "deny" },
+    { "action": "shell", "resource": "git commit *", "effect": "deny" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "shell", "resource": "git fetch *", "effect": "deny" },
+    { "action": "shell", "resource": "git pull *", "effect": "deny" },
+    { "action": "shell", "resource": "git remote *", "effect": "deny" },
+    { "action": "shell", "resource": "git checkout *", "effect": "deny" },
+    { "action": "shell", "resource": "git switch *", "effect": "deny" },
+    { "action": "shell", "resource": "git restore *", "effect": "deny" },
+    { "action": "shell", "resource": "git reset *", "effect": "deny" },
+    { "action": "shell", "resource": "git clean *", "effect": "deny" },
+    { "action": "shell", "resource": "git stash *", "effect": "deny" },
+    { "action": "shell", "resource": "git rebase *", "effect": "deny" },
+    { "action": "shell", "resource": "git merge *", "effect": "deny" },
+    { "action": "shell", "resource": "git branch *", "effect": "deny" },
+    { "action": "shell", "resource": "git rm *", "effect": "deny" },
+    { "action": "shell", "resource": "git mv *", "effect": "deny" },
+    { "action": "shell", "resource": "git revert *", "effect": "deny" },
+    { "action": "shell", "resource": "git cherry-pick *", "effect": "deny" },
+    { "action": "shell", "resource": "git filter-branch *", "effect": "deny" },
+    { "action": "shell", "resource": "git config *", "effect": "deny" },
+    { "action": "shell", "resource": "git tag *", "effect": "deny" },
+    { "action": "shell", "resource": "git notes *", "effect": "deny" },
+    { "action": "shell", "resource": "git update-ref *", "effect": "deny" },
+    { "action": "shell", "resource": "git gc *", "effect": "deny" },
+    { "action": "shell", "resource": "git submodule *", "effect": "deny" },
+    { "action": "shell", "resource": "git worktree *", "effect": "deny" },
+    { "action": "shell", "resource": "git apply *", "effect": "deny" },
+    { "action": "shell", "resource": "git am *", "effect": "deny" },
+
+    // 3) Allowlist da skill: leitura livre + git add com caminhos explícitos após
+    //    "--" + git commit apenas com "-m". Padrão " *" também casa sem argumentos.
+    { "action": "shell", "resource": "git status *", "effect": "allow" },
+    { "action": "shell", "resource": "git log *", "effect": "allow" },
+    { "action": "shell", "resource": "git show *", "effect": "allow" },
+    { "action": "shell", "resource": "git diff *", "effect": "allow" },
+    { "action": "shell", "resource": "git grep *", "effect": "allow" },
+    { "action": "shell", "resource": "git ls-files *", "effect": "allow" },
+    { "action": "shell", "resource": "git ls-tree *", "effect": "allow" },
+    { "action": "shell", "resource": "git add -- *", "effect": "allow" },
+    { "action": "shell", "resource": "git commit -m *", "effect": "allow" },
+
+    // 4) Flags perigosas negadas por último, para vencer até os allows acima
+    //    (ex.: "git commit -m 'x' --amend" continua negado).
+    //    Pode gerar falso positivo raro se a mensagem do commit contiver literalmente
+    //    "--amend", "--force", " -a " ou " -f " — nesse caso, ajuste a mensagem.
+    { "action": "shell", "resource": "*--amend*", "effect": "deny" },
+    { "action": "shell", "resource": "*--no-verify*", "effect": "deny" },
+    { "action": "shell", "resource": "*--no-gpg-sign*", "effect": "deny" },
+    { "action": "shell", "resource": "*--force*", "effect": "deny" },
+    { "action": "shell", "resource": "* -a*", "effect": "deny" },
+    { "action": "shell", "resource": "* -f*", "effect": "deny" }
+  ]
+}
